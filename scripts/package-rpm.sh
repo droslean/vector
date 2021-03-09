@@ -42,10 +42,24 @@ export RELEASE=1
 # not fail.
 export CLEANED_VERSION="${PACKAGE_VERSION//-/.}"
 
+export
+
 # The arch is the first part of the target
 # For some architectures, like armv7hl it doesn't match the arch
 # from Rust target triple and needs to be specified manually.
 ARCH="${ARCH:-"$(echo "$TARGET" | cut -d'-' -f1)"}"
+LIBC="${LIBC:-"$(echo "$TARGET" | cut -d'-' -f3)"}"
+
+if [[ -z "$GLIBC_VERSION" && "$LIBC" == *"gnu"* ]] ; then
+  case "$ARCH" in
+    "aarch64")
+      GLIBC_VERSION="2.18"
+      ;;
+    "x86_64" | "armv7")
+      GLIBC_VERSION="2.15"
+      ;;
+  esac
+fi
 
 # Prepare rpmbuild dir
 RPMBUILD_DIR="$(mktemp -td "rpmbuild.XXXX")"
@@ -69,6 +83,7 @@ rpmbuild \
   --define "_topdir $RPMBUILD_DIR" \
   --target "$ARCH-redhat-linux" \
   --define "_arch $ARCH" \
+  --define "_glibc_version $GLIBC_VERSION" \
   --nodebuginfo \
   -ba distribution/rpm/vector.spec
 

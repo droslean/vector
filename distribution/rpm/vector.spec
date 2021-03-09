@@ -36,6 +36,9 @@ Group: Applications/System
 Source: %{_source}
 URL: %{_url}
 AutoReqProv: no
+%if %{defined _glibc_version}
+Requires: glibc >= %{_glibc_version}
+%endif
 
 %description
 %{summary}
